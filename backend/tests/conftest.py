@@ -1,0 +1,4 @@
+import os
+
+
+os.environ["DATABASE_URL"] = "postgresql+asyncpg://test:test@localhost:5432/test"

@@ -1,0 +1,50 @@
+name: Quality
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.10"
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          # Linux CI 与 selected Docker topology 使用同一 CPU artifact policy，避免通用 Linux Torch 引入 CUDA dependency chain；requirements.txt 仍拥有逻辑版本。
+          python -m pip install --no-cache-dir --no-deps torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --no-cache-dir -r requirements.txt
+
+      - name: Run backend deterministic regression
+        working-directory: backend
+        run: python -m pytest
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run frontend lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          # Public localhost 仅满足 production build-time contract；build 不要求 FastAPI 实际运行。
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+        run: npm run build

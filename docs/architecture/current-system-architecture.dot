@@ -1,0 +1,147 @@
+digraph CurrentSystemArchitecture {
+    graph [
+        rankdir=TB,
+        newrank=true,
+        compound=true,
+        splines=polyline,
+        nodesep=0.42,
+        ranksep=0.72,
+        pad=0.30,
+        margin=0,
+        bgcolor="transparent",
+        fontname="Arial, Microsoft YaHei, PingFang SC, sans-serif",
+        fontsize=15,
+        fontcolor="#111827"
+    ];
+
+    node [
+        shape=box,
+        style="rounded,filled",
+        fillcolor="#F8FAFC",
+        color="#64748B",
+        penwidth=1.4,
+        fontname="Arial, Microsoft YaHei, PingFang SC, sans-serif",
+        fontsize=13,
+        fontcolor="#111827",
+        margin="0.16,0.10"
+    ];
+
+    edge [
+        color="#64748B",
+        penwidth=1.2,
+        arrowsize=0.75,
+        fontname="Arial, Microsoft YaHei, PingFang SC, sans-serif",
+        fontsize=11,
+        fontcolor="#334155"
+    ];
+
+    subgraph cluster_experience {
+        label="Experience Layer";
+        color="#C7D2FE";
+        fillcolor="#FAFAFF";
+        style="rounded,filled";
+        penwidth=1.2;
+        margin=18;
+
+        User [label="User", fillcolor="#FAF5FF", color="#9333EA", penwidth=1.8];
+        Frontend [label="Next.js Frontend", fillcolor="#EEF2FF", color="#4F46E5"];
+
+        { rank=same; User; Frontend; }
+        User -> Frontend [constraint=false];
+    }
+
+    subgraph cluster_core {
+        label="Core Backend";
+        color="#94A3B8";
+        fillcolor="#FFFFFF";
+        style="rounded,filled";
+        penwidth=1.2;
+        margin=20;
+
+        subgraph cluster_application {
+            label="Application & AI Layer";
+            color="#BAE6FD";
+            fillcolor="#F8FBFF";
+            style="rounded,filled";
+            penwidth=1.1;
+            margin=16;
+
+            API [label="FastAPI API", fillcolor="#E0F2FE", color="#0284C7"];
+            Chat [label="ChatService", fillcolor="#E0F2FE", color="#0284C7"];
+            LLM [label="LLM Provider", fillcolor="#FFF7ED", color="#EA580C", style="rounded,dashed,filled"];
+            RAG [label="RAG Retrieval", fillcolor="#FFF7ED", color="#EA580C", style="rounded,dashed,filled"];
+            Tool [label="Bounded Business Tool", fillcolor="#E0F2FE", color="#0284C7"];
+
+            API -> Chat;
+            Chat -> LLM;
+            Chat -> RAG;
+            Chat -> Tool;
+
+            { rank=same; LLM; Tool; RAG; }
+
+            // Layout-only ordering keeps the AI branch row stable.
+            LLM -> Tool -> RAG [style=invis, weight=100];
+        }
+
+        Gate [
+            label="Human Gate\nExplicit Confirmation",
+            shape=diamond,
+            style=filled,
+            fillcolor="#FAF5FF",
+            color="#9333EA",
+            penwidth=2.0,
+            margin="0.10,0.06"
+        ];
+
+        subgraph cluster_business {
+            label="Business & Workflow Layer";
+            color="#BBF7D0";
+            fillcolor="#F8FFFB";
+            style="rounded,filled";
+            penwidth=1.1;
+            margin=16;
+
+            WorkflowService [label="WorkflowService\ndurable lifecycle", fillcolor="#F0FDF4", color="#16A34A", penwidth=1.8];
+            BusinessService [label="BusinessService\ndeterministic rules", fillcolor="#ECFDF5", color="#059669", penwidth=1.8];
+            Repositories [label="Repositories\ncustomer-scoped / guarded", fillcolor="#ECFDF5", color="#059669", penwidth=1.8];
+
+            WorkflowService -> BusinessService;
+            WorkflowService -> Repositories;
+            BusinessService -> Repositories [constraint=false];
+
+            { rank=same; BusinessService; Repositories; }
+
+            // Layout-only ordering for the deterministic downstream row.
+            BusinessService -> Repositories [style=invis, weight=100];
+        }
+
+        Chat -> Gate [label="workflow_handoff", style=dashed, minlen=2, color="#9333EA", fontcolor="#7E22CE"];
+        Gate -> WorkflowService [label="start / resume", color="#9333EA", fontcolor="#7E22CE"];
+        Tool -> BusinessService [constraint=false];
+    }
+
+    subgraph cluster_data {
+        label="Data Layer";
+        color="#CBD5E1";
+        fillcolor="#FAFAFA";
+        style="rounded,filled";
+        penwidth=1.2;
+        margin=18;
+
+        Chroma [label="Chroma\nPolicy / SOP Index", shape=cylinder];
+        PostgreSQL [label="PostgreSQL\nConversation / Business / Workflow", shape=cylinder];
+
+        // Layout-only ordering keeps knowledge above durable state in the Data column.
+        Chroma -> PostgreSQL [style=invis, weight=100];
+    }
+
+    Frontend -> API [label="HTTP / SSE", constraint=false];
+    Frontend -> Gate [label="Explicit user action", constraint=false, color="#9333EA", fontcolor="#7E22CE"];
+    RAG -> Chroma [constraint=false];
+    Repositories -> PostgreSQL [constraint=false];
+
+    { rank=same; Frontend; API; Chroma; }
+
+    // Layout-only left-to-right ordering for the three semantic regions.
+    Frontend -> API -> Chroma [style=invis, weight=100];
+}

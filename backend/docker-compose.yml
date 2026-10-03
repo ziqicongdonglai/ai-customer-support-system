@@ -1,0 +1,53 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: ai-chat-api
+
+    restart: unless-stopped
+
+    ports:
+      - "8000:8000"
+
+    env_file:
+      - .env
+
+    volumes:
+      - rag_vector_data:/app/vector_data
+
+    # service_healthy 仅避免 API 与 PostgreSQL 的连接启动竞态；schema readiness 仍由 /health/ready 负责。
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16
+
+    container_name: ai-chat-postgres
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: ai_user
+      POSTGRES_PASSWORD: ai_password
+      POSTGRES_DB: ai_chat
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    # pg_isready 仅证明 PostgreSQL 接受连接，不代表 schema 或应用已就绪。
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  postgres_data:
+  rag_vector_data:
