@@ -8,6 +8,16 @@ AI Customer Support System 是一个面向电商售后场景的全栈 AI 应用�
 
 `Next.js · FastAPI · PostgreSQL · SQLAlchemy · Alembic · Chroma · SSE · DeepSeek / Mock`
 
+## 项目背景与定位
+
+这是一个个人 AI 应用工程实践与作品展示项目，由本人完成整体方案设计、开发实现、工程验证与公开版本整理。
+
+项目重点是探索 LLM、Tool Calling、RAG 和 Workflow 与传统业务系统的结合方式，同时明确 LLM 与业务数据、确定性规则、用户确认及状态持久化之间的职责边界。
+
+项目中的订单、物流、购买记录及售后规则均为模拟数据与演示规则，不代表任何真实电商平台的生产系统。
+
+本仓库为整理后的公开展示版本，公开 Git 历史从整理发布时建立的基线提交开始。
+
 ## 核心业务流程
 
 用户先查询物流状态，再提出退货问题。AI 提供退货资格检查入口，用户明确启动检查并选择购买项，系统随后执行规则判断并保存 Workflow 状态。
@@ -58,6 +68,17 @@ AI Customer Support System 是一个面向电商售后场景的全栈 AI 应用�
 - PostgreSQL 持久化会话、业务数据和 Workflow 状态，Chroma 仅保存政策与 SOP 的向量索引。
 
 完整组件职责、关键路径与职责边界见 [Current System Architecture](docs/architecture/CURRENT_SYSTEM_ARCHITECTURE.md)。
+
+## 个人贡献
+
+项目的整体方案、前后端实现、工程验证和公开版本整理由本人负责，主要工作包括：
+
+- 设计并实现 LLM 与业务系统之间的职责边界，使模型负责意图理解、受控 Tool 选择与回复生成，而业务事实、权限范围和确定性规则由应用服务与数据库负责。
+- 完成基于 FastAPI、PostgreSQL 的后端与 Next.js 前端实现，包括会话持久化、SSE 流式交互、业务数据访问、Tool Calling 以及需要用户确认的 Workflow 交互。
+- 集成并验证 RAG、Tool Calling、Human Gate、Workflow 状态流转、异常处理和日志追踪，并通过测试、构建与运行验证关键行为。
+- 整理系统架构、运行文档、业务演示与验证证据，形成当前公开展示版本。
+
+开发过程中使用 AI 工具辅助代码检索、方案分析、局部实现与验证；需求判断、架构选择、范围控制、代码 Review 与最终验收由本人负责。具体实践见 [AI 辅助开发实践](docs/engineering/AI_ASSISTED_ENGINEERING_WORKFLOW.md)。
 
 ## 工程验证
 
@@ -110,3 +131,11 @@ Next.js              -> local Node.js process
 - 系统同时支持 Mock 和 DeepSeek provider；Mock 可用于无需 API Key 的本地验证，DeepSeek 用于真实模型调用。
 - RAG 当前用于检索售后政策与 SOP；订单和物流状态由应用服务从 PostgreSQL 读取，退货资格由应用服务按照业务规则判断。
 - 当前演示用户身份由应用侧固定上下文提供，尚未接入真实用户认证和多用户隔离机制。
+
+## 作者与许可
+
+项目由 [ziqicongdonglai](https://github.com/ziqicongdonglai) 开发与维护，用于 AI 应用工程实践、技术交流和个人作品展示。
+
+项目采用 [MIT License](LICENSE) 开源。使用、修改或再分发时，请遵守许可证要求并保留原始版权及许可声明。
+
+Copyright © 2026 ziqicongdonglai.
